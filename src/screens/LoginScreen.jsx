@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { TouchableOpacity, StyleSheet, View } from 'react-native'
 import { Text } from 'react-native-paper'
 import Background from '../components/Background'
@@ -10,6 +10,8 @@ import BackButton from '../components/BackButton'
 import { theme } from '../core/theme'
 import { emailValidator } from '../helpers/emailValidator'
 import { passwordValidator } from '../helpers/passwordValidator'
+import loginService from '../core/service/loginService'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState({ value: '', error: '' })
@@ -23,11 +25,35 @@ export default function LoginScreen({ navigation }) {
       setPassword({ ...password, error: passwordError })
       return
     }
-    navigation.reset({
-      index: 0,
-      routes: [{ name: 'Dashboard' }],
-    })
+    loginUser()
   }
+
+  const loginUser = () => {
+    const params = {
+      email: email.value,
+      password: password.value
+    };
+  
+    loginService.login(params)
+      .then((res) => {
+        const { access_token, user } = res.data;
+        // Save access_token in asyncStorage
+        AsyncStorage.setItem('access_token', access_token)
+          .then(() => {
+            // Access_token save success
+            navigation.reset({
+                      index: 0,
+                      routes: [{ name: 'Dashboard' }],
+                    })
+          })
+          .catch((error) => {
+            console.error('Error saving access token:', error);
+          });
+      })
+      .catch((e) => {
+        console.log(e);
+      });
+  };
 
   return (
     <Background>
