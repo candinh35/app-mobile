@@ -36,21 +36,40 @@ export default function LoginScreen({ navigation }) {
   
     loginService.login(params)
       .then((res) => {
-        const { access_token, user } = res.data;
-        // Save access_token in asyncStorage
-        AsyncStorage.setItem('access_token', access_token)
-          .then(() => {
-            // Access_token save success
-            navigation.reset({
-                      index: 0,
-                      routes: [{ name: 'Dashboard' }],
-                    })
-          })
-          .catch((error) => {
-            console.error('Error saving access token:', error);
-          });
+        if(res?.data?.access_token){
+          const { access_token, user } = res.data;
+          // Save access_token in asyncStorage
+          AsyncStorage.setItem('user', user.email)
+          AsyncStorage.setItem('access_token', access_token)
+            .then(() => {
+              // Access_token save success
+              navigation.reset({
+                        index: 0,
+                        routes: [{ name: 'Dashboard' }],
+                      })
+            })
+            .catch((error) => {
+              console.error('Error saving access token:', error);
+            });
+        }
+        else{
+          const emailError = "Email or password wrong !"
+          const passwordError = "Email or password wrong !"
+          if (emailError || passwordError) {
+            setEmail({ ...email, error: emailError })
+            setPassword({ ...password, error: passwordError })
+            return
+          }
+        }
       })
       .catch((e) => {
+        const emailError = "Email or password wrong !"
+          const passwordError = "Email or password wrong !"
+          if (emailError || passwordError) {
+            setEmail({ ...email, error: emailError })
+            setPassword({ ...password, error: passwordError })
+            return
+          }
         console.log(e);
       });
   };
